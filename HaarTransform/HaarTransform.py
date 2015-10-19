@@ -2,12 +2,7 @@
 import os
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
 
-def readImage():
-    image = cv2.imread(os.getcwd() + "/Input/flower.jpg")
-    return image
-    
 def HaarTransform2D(img):
     rows, columns = img.shape
     horizontalTransform = np.zeros([rows,columns])
@@ -40,17 +35,35 @@ def HaarTransform2D(img):
             # Processing two pixels
             pixelX = horizontalTransform[height][width]
             pixelY = horizontalTransform[height+1][width]
-            # Store the sum in top section 
+            # Store the sum in top section
             verticalTransform[height/2][width] = pixelX + pixelY
             # Store the difference in bottom section
             verticalTransform[height/2 + topSectionEnd + 1][width] = pixelX - pixelY
-    cv2.imwrite(os.getcwd() + "/Results/haarTransform.jpg", verticalTransform)        
-            
-    
+    return verticalTransform
+
+def inverseHaarTransform2D(img):
+    rows, columns = img.shape
+    leftSectionEnd = (columns - columns % 4)/2 - 1
+    topSectionEnd = int(rows)/2 - 1
+
+    # inverse vertical
+    result = np.zeros(img.shape)
+    for width in range(0,leftSectionEnd):
+        for height in range(0,topSectionEnd):
+            W = img[height][width]
+            X = img[height][width + leftSectionEnd + 1]
+            Y = img[height + topSectionEnd + 1][width]
+            Z = img[height + topSectionEnd + 1][width + leftSectionEnd + 1]
+            A = np.average([W, X, Y, Z])
+
+            result[height*2][width*2] = A
+            result[height * 2][width * 2 + 1] = W - A + X - A
+            result[height * 2 + 1][width * 2] = W - A + Y - A
+            result[height * 2 + 1][width * 2 + 1] = W - A + Z - A
+    return result
+
 image = cv2.imread(os.getcwd() + "/Input/flower.jpg",cv2.CV_LOAD_IMAGE_GRAYSCALE)
-HaarTransform2D(image)            
-            
-            
-            
-             
-        
+res = HaarTransform2D(image)
+cv2.imwrite(os.getcwd() + "/Results/haarTransform.jpg", res)
+ires = inverseHaarTransform2D(res)
+cv2.imwrite(os.getcwd() + "/Results/inverseHaarTransform.jpg", ires)
