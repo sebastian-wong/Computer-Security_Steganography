@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 
 def HaarTransform2D(img):
+    img = np.float32(img)
     rows, columns = img.shape
     horizontalTransform = np.zeros([rows,columns])
     # for left and right region
@@ -42,6 +43,7 @@ def HaarTransform2D(img):
     return verticalTransform
 
 def inverseHaarTransform2D(img):
+    img = np.float32(img)
     rows, columns = img.shape
     leftSectionEnd = (columns - columns % 4)/2 - 1
     topSectionEnd = int(rows)/2 - 1
@@ -57,9 +59,9 @@ def inverseHaarTransform2D(img):
             A = np.average([W, X, Y, Z])
 
             result[height*2][width*2] = A
-            result[height * 2][width * 2 + 1] = W - A + X - A
-            result[height * 2 + 1][width * 2] = W - A + Y - A
-            result[height * 2 + 1][width * 2 + 1] = W - A + Z - A
+            result[height * 2][width * 2 + 1] = (W + X - 2 * A)/2
+            result[height * 2 + 1][width * 2] = (W + Y - 2 * A)/2
+            result[height * 2 + 1][width * 2 + 1] = (W + Z - 2 * A)/2
     return result
 
 image = cv2.imread(os.getcwd() + "/Input/flower.jpg",cv2.CV_LOAD_IMAGE_GRAYSCALE)
@@ -67,3 +69,4 @@ res = HaarTransform2D(image)
 cv2.imwrite(os.getcwd() + "/Results/haarTransform.jpg", res)
 ires = inverseHaarTransform2D(res)
 cv2.imwrite(os.getcwd() + "/Results/inverseHaarTransform.jpg", ires)
+cv2.imwrite(os.getcwd() + "/Results/originalBW.jpg", image)
