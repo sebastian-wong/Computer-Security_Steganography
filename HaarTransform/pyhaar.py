@@ -134,7 +134,6 @@ def best_bits(a, b, c):
             res += b[i]
     return res
 
-
 def test_encode_img(img, wm):
     h, w = img.shape
     LL, LH, HL, HH = dwt(img)
@@ -167,6 +166,43 @@ def test_encode_img(img, wm):
     res = idwt(LL, LH, HL, HH)
     return res
 
+def test2_encode_img(img, wm):
+    h, w = img.shape
+    LL, LH, HL, HH = dwt(img)
+    b,g,r = cv2.split(wm)
+    bin_img1 = combine_bin(img_to_bin(b))
+    bin_img2 = combine_bin(img_to_bin(g))
+    bin_img3 = combine_bin(img_to_bin(r))
+
+    HH = np.ravel(HH)
+    LH = np.ravel(LH)
+    HL = np.ravel(HL)
+
+    for i in range(0, len(bin_img1)):
+        bits1 = bin_img1[i]
+        _hh = bin(int(round(HH[i])))
+        _hh_index = _hh.index('b')+1
+        hh_bin = _hh[:_hh_index] + _hh[_hh_index:].zfill(3)
+        HH[i] = int(hh_bin[:len(hh_bin)-len(bits1)] + bits1, 2)
+
+        bits2 = bin_img2[i]
+        _lh = bin(int(round(LH[i])))
+        _lh_index = _lh.index('b')+1
+        lh_bin = _lh[:_lh_index] + _lh[_lh_index:].zfill(3)
+        LH[i] = int(lh_bin[:len(lh_bin)-len(bits2)] + bits2, 2)
+
+        bits3 = bin_img3[i]
+        _hl = bin(int(round(HL[i])))
+        _hl_index = _hl.index('b')+1
+        hl_bin = _hl[:_hl_index] + _hl[_hl_index:].zfill(3)
+        HL[i] = int(hl_bin[:len(hl_bin)-len(bits3)] + bits3, 2)
+
+    HH = np.reshape(HH, LL.shape)
+    LH = np.reshape(LH, LL.shape)
+    HL = np.reshape(HL, LL.shape)
+    res = idwt(LL, LH, HL, HH)
+    return res
+
 def test_decode_img(img, owm):
     h,w = owm.shape
     ll, lh, hl, hh = dwt(img)
@@ -192,38 +228,43 @@ def test_decode_img(img, owm):
         hl_bin = hl_bin[hl_bin.index('b')+1:]
         bit_pairs3 = hl_bin[len(hl_bin)-2:] if len(hl_bin) >= 2 else '0' + hl_bin
         bits3 += bit_pairs3
-        if len(bits1) != len(bits2) or len(bits1) != len(bits3) or len(bits2) != len(bits3):
-            print bit_pairs1, bit_pairs2, bit_pairs3
 
-    print len(bits1), len(bits2), len(bits3)
-    bits = best_bits(bits1, bits2, bits3)
-    bin_res = ""
     img_res = []
-    for i in range(0, len(bits), 8):
-        bin_char = bits[i:i+8]
+    img_res2 = []
+    img_res3 = []
+    for i in range(0, len(bits1), 8):
+        bin_char = bits1[i:i+8]
         img_res += [int(bin_char, 2)]
+        bin_char = bits2[i:i+8]
+        img_res2 += [int(bin_char, 2)]
+        bin_char = bits3[i:i+8]
+        img_res3 += [int(bin_char, 2)]
+
     final = np.reshape(img_res, owm.shape)
     #cv2.imwrite(os.getcwd()  + '/Results/test_img.jpg', final)
-    return final
+    return final, np.reshape(img_res2, owm.shape), np.reshape(img_res3, owm.shape)
 
 image = cv2.imread(os.getcwd() + '/Input/flower2.jpg')
-image2 = cv2.imread(os.getcwd() + '/Input/watermark.jpg')
+image2 = cv2.imread(os.getcwd() + '/Input/watermark2.jpeg')
 def test():
     b1,g1,r1 = cv2.split(image)
     b2,g2,r2 = cv2.split(image2)
-    b_r = test_encode_img(b1, b2)
-    g_r = test_encode_img(g1, g2)
-    r_r = test_encode_img(r1, r2)
+    b_r = test2_encode_img(b1, image2)
+    g_r = test2_encode_img(g1, image2)
+    r_r = test2_encode_img(r1, image2)
     result = cv2.merge((b_r, g_r, r_r))
     fractional, integral = np.modf(result)
     cv2.imwrite(os.getcwd()  + '/Results/stegged.jpg', integral)
     stegged = cv2.imread(os.getcwd()  + '/Results/stegged.jpg')
     stegged = np.add(stegged, fractional)
     b3,g3,r3 = cv2.split(stegged)
-    b_r2 = test_decode_img(b3,b2)
-    g_r2 = test_decode_img(g3,g2)
-    r_r2 = test_decode_img(r3,r2)
-    result2 = cv2.merge((b_r2, g_r2, r_r2))
-    cv2.imwrite(os.getcwd()  + '/Results/recovered.jpg', result2)
-    print result
-    print stegged
+    x1,x2,x3 = test_decode_img(b3,b2)
+    y1,y2,y3 = test_decode_img(g3,g2)
+    z1,z2,z3 = test_decode_img(r3,r2)
+    result1 = cv2.merge((x1, x2, x3))
+    result2 = cv2.merge((y1, y2, y3))
+    result3 = cv2.merge((z1, z2, z3))
+    result4 = np.divide(np.add(np.add(result1, result2), result3), 3)
+    results = np.vstack((np.hstack((result1, result2)), np.hstack((result3, result4))))
+    cv2.imwrite(os.getcwd()  + '/Results/recovered.jpg', results)
+test()
