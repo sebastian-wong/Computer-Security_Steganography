@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 import pywt
+from rs import RSCoder
 
 SUBTRACTION_ARRAY = np.array([
     ['00', '100', '10', '1'], ['000', '01', '101', '11'],
@@ -51,6 +52,18 @@ def diff_sequence(bin_msg):
         val_len = 2 if len(val) == 3 else 1
         pairs += [ [val[:val_len], val[val_len:]] ]
     return seq, pairs
+
+def to_bin(c):
+    return bin(ord(c))[2:].zfill(8)
+
+def msg_to_bin(msg):
+    rs = RSCoder(255, 223)
+    final_msg = ""
+    for i in range(0, len(msg), 255):
+        ecc_msg = rs.encode(msg[i:i+255])
+        ecc_msg = map(to_bin, list(ecc_msg))
+        final_msg += ''.join(ecc_msg)
+    return final_msg
 
 def encode(img, txt):
     h, w = img.shape
@@ -124,15 +137,6 @@ def test_encode(img, txt):
         bin_char = bits[i:i+7]
         str_res += str(unichr(int(bin_char, 2)))
     return str_res
-
-def best_bits(a, b, c):
-    res = ''
-    for i in range(0,len(a)):
-        if a[i] == b[i] or a[i] == c[i]:
-            res += a[i]
-        else:
-            res += b[i]
-    return res
 
 def test_encode_img(img, wm):
     h, w = img.shape
