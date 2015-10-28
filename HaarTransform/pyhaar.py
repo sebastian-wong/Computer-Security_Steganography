@@ -2,6 +2,7 @@
 import os
 import cv2
 import numpy as np
+import math
 import pywt
 from rs import RSCoder
 
@@ -206,8 +207,24 @@ def test_decode_img(img, wm):
     result = np.reshape(result, wm.shape)
     return result
 
-image = cv2.imread(os.getcwd() + '/Input/flower2.jpg')
-image2 = cv2.imread(os.getcwd() + '/Input/chrome.png')
+image = cv2.imread(os.getcwd() + '/Input/flower.jpg')
+image2 = cv2.imread(os.getcwd() + '/Input/watermark.jpg')
+
+
+# return user input in chunks of 128 characters
+def getUserInput():
+    messages = []
+    maxLength = 128
+    message = raw_input("Enter the message to be hidden: ")
+    if (len(message) > maxLength ):
+        for i in range(0,int(math.ceil(len(message)/maxLength))):
+            messagechunk = np.zeros(maxLength)
+            start = i * maxLength
+            end = start + maxLength
+            messagechunk = message[start:end]
+            messages.append(messagechunk)
+        return messages
+
 def test():
     b1,g1,r1 = cv2.split(image)
     b2,g2,r2 = cv2.split(image2)
@@ -217,8 +234,8 @@ def test():
     r_r = test2_encode_img(r1, image2)
     result = cv2.merge((b_r, g_r, r_r))
     fractional, integral = np.modf(result)
-    cv2.imwrite(os.getcwd()  + '/Results/stegged.jpg', integral)
-    stegged = cv2.imread(os.getcwd()  + '/Results/stegged.jpg')
+    cv2.imwrite(os.getcwd()  + '/Results/stegged.png', integral)
+    stegged = cv2.imread(os.getcwd()  + '/Results/stegged.png')
     stegged = np.add(stegged, fractional)
     b3,g3,r3 = cv2.split(stegged)
     x1,x2,x3 = test_decode_img(b3,b2)
@@ -230,7 +247,7 @@ def test():
     result4 = np.divide(np.add(np.add(result1, result2), result3), 3)
     results = np.vstack((np.hstack((result1, result2)), np.hstack((result3, result4))))
     cv2.imwrite(os.getcwd()  + '/Results/recovered.jpg', results)
-    '''
+
     b_r = test_encode_img(b1, b2)
     g_r = test_encode_img(g1, g2)
     r_r = test_encode_img(r1, r2)
@@ -243,5 +260,5 @@ def test():
     dc3 = test_decode_img(r3,r2)
     result3 = cv2.merge((dc1, dc2, dc3))
     cv2.imwrite(os.getcwd()  + '/Results/ecc_test.jpg', result3)
-
+    '''
 test()
