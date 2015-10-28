@@ -5,6 +5,10 @@ import numpy as np
 import pywt
 from rs import RSCoder
 
+import sys
+reload(sys)  # Reload does the trick!
+sys.setdefaultencoding('UTF8')
+
 SUBTRACTION_ARRAY = np.array([
     ['00', '100', '10', '1'], ['000', '01', '101', '11'],
     ['00', '001', '10', '110'], ['0', '01', '010', '11']
@@ -28,10 +32,21 @@ def txt_to_bin(txt):
     return bin_msg
 
 def img_to_bin(img):
-    res = []
+    res = ""
     for index,bits in np.ndenumerate(img):
         res += (bin(bits))[2:].zfill(8)
     return res
+def img_to_str(img):
+    res = ""
+    for index,bits in np.ndenumerate(img):
+        res += unichr(bits)
+    return res
+def bin_to_str(bin_msg):
+    msg = ""
+    for i in range(0, len(bin_msg), 8):
+        b = bin_msg[i:i+8]
+        msg += str(unichr(int(b, 2)))
+    return msg
 
 def combine_bin(bin_msg):               #combine every 2 consecutive bits
     msg = []
@@ -59,8 +74,8 @@ def to_bin(c):
 def msg_to_bin(msg):
     rs = RSCoder(255, 223)
     final_msg = ""
-    for i in range(0, len(msg), 255):
-        ecc_msg = rs.encode(msg[i:i+255])
+    for i in range(0, len(msg), 223):
+        ecc_msg = rs.encode(msg[i:i+223])
         ecc_msg = map(to_bin, list(ecc_msg))
         final_msg += ''.join(ecc_msg)
     return final_msg
@@ -141,118 +156,62 @@ def test_encode(img, txt):
 def test_encode_img(img, wm):
     h, w = img.shape
     LL, LH, HL, HH = dwt(img)
-    bin_img = combine_bin(img_to_bin(wm))
+    msg_str = img_to_str(wm)
+    print len(msg_str)
+    msg = msg_to_bin(msg_str)
     HH = np.ravel(HH)
+    rs = RSCoder(255, 223)
 
-    LH = np.ravel(LH)
-    HL = np.ravel(HL)
-
-    for i in range(0, len(bin_img)):
-        bits = bin_img[i]
+    #encode image
+    for i in range(0, len(msg), 2):
+        bits = msg[i:i+2]
         _hh = bin(int(round(HH[i])))
         _hh_index = _hh.index('b')+1
         hh_bin = _hh[:_hh_index] + _hh[_hh_index:].zfill(3)
         HH[i] = int(hh_bin[:len(hh_bin)-len(bits)] + bits, 2)
 
-        _lh = bin(int(round(LH[i])))
-        _lh_index = _lh.index('b')+1
-        lh_bin = _lh[:_lh_index] + _lh[_lh_index:].zfill(3)
-        LH[i] = int(lh_bin[:len(lh_bin)-len(bits)] + bits, 2)
-
-        _hl = bin(int(round(HL[i])))
-        _hl_index = _hl.index('b')+1
-        hl_bin = _hl[:_hl_index] + _hl[_hl_index:].zfill(3)
-        HL[i] = int(hl_bin[:len(hl_bin)-len(bits)] + bits, 2)
-
     HH = np.reshape(HH, LL.shape)
     LH = np.reshape(LH, LL.shape)
     HL = np.reshape(HL, LL.shape)
     res = idwt(LL, LH, HL, HH)
+    res = np.around(res)
     return res
 
-def test2_encode_img(img, wm):
-    h, w = img.shape
+def test_decode_img(img, wm):
+    rs = RSCoder(255,223)
+    msg_str = img_to_str(wm)
+    msg = msg_to_bin(msg_str)
     LL, LH, HL, HH = dwt(img)
-    b,g,r = cv2.split(wm)
-    bin_img1 = combine_bin(img_to_bin(b))
-    bin_img2 = combine_bin(img_to_bin(g))
-    bin_img3 = combine_bin(img_to_bin(r))
-
     HH = np.ravel(HH)
-    LH = np.ravel(LH)
-    HL = np.ravel(HL)
-
-    for i in range(0, len(bin_img1)):
-        bits1 = bin_img1[i]
-        _hh = bin(int(round(HH[i])))
-        _hh_index = _hh.index('b')+1
-        hh_bin = _hh[:_hh_index] + _hh[_hh_index:].zfill(3)
-        HH[i] = int(hh_bin[:len(hh_bin)-len(bits1)] + bits1, 2)
-
-        bits2 = bin_img2[i]
-        _lh = bin(int(round(LH[i])))
-        _lh_index = _lh.index('b')+1
-        lh_bin = _lh[:_lh_index] + _lh[_lh_index:].zfill(3)
-        LH[i] = int(lh_bin[:len(lh_bin)-len(bits2)] + bits2, 2)
-
-        bits3 = bin_img3[i]
-        _hl = bin(int(round(HL[i])))
-        _hl_index = _hl.index('b')+1
-        hl_bin = _hl[:_hl_index] + _hl[_hl_index:].zfill(3)
-        HL[i] = int(hl_bin[:len(hl_bin)-len(bits3)] + bits3, 2)
-
-    HH = np.reshape(HH, LL.shape)
-    LH = np.reshape(LH, LL.shape)
-    HL = np.reshape(HL, LL.shape)
-    res = idwt(LL, LH, HL, HH)
-    return res
-
-def test_decode_img(img, owm):
-    h,w = owm.shape
-    ll, lh, hl, hh = dwt(img)
-    #decode
-    bits1 = ""
-    bits2 = ""
-    bits3 = ""
-    hh = np.ravel(hh)
-    lh = np.ravel(lh)
-    hl = np.ravel(hl)
-    for i in range(0, h*w*4):
-        hh_bin = bin(int(round(hh[i])))
+    bin_msg = ""
+    for i in range(0, len(msg)/2):
+        hh_bin = bin(int(round(HH[i])))
         hh_bin = hh_bin[hh_bin.index('b')+1:]
-        bit_pairs1 = hh_bin[len(hh_bin)-2:] if len(hh_bin) >= 2 else '0' + hh_bin
-        bits1 += bit_pairs1
+        bit_pairs = hh_bin[len(hh_bin)-2:] if len(hh_bin) >= 2 else '0' + hh_bin
+        bin_msg += bit_pairs
+    msg_str = ""
+    for i in range(0, len(bin_msg), 8):
+        digit = bin_msg[i:i+8]
+        msg_str += unichr(int(digit, 2))
+    decoded = ""
+    #11475
+    for i in range(0, len(msg_str), 255):
+        decoded += rs.decode(msg_str[i:i+255])
+    dc_list = list(decoded)
+    print(len(dc_list))
+    for i in range(0, len(dc_list)):
+        dc_list[i] = ord(dc_list[i])
 
-        lh_bin = bin(int(round(lh[i])))
-        lh_bin = lh_bin[lh_bin.index('b')+1:]
-        bit_pairs2 = lh_bin[len(lh_bin)-2:] if len(lh_bin) >= 2 else '0' + lh_bin
-        bits2 += bit_pairs2
-
-        hl_bin = bin(int(round(hl[i])))
-        hl_bin = hl_bin[hl_bin.index('b')+1:]
-        bit_pairs3 = hl_bin[len(hl_bin)-2:] if len(hl_bin) >= 2 else '0' + hl_bin
-        bits3 += bit_pairs3
-
-    img_res = []
-    img_res2 = []
-    img_res3 = []
-    for i in range(0, len(bits1), 8):
-        bin_char = bits1[i:i+8]
-        img_res += [int(bin_char, 2)]
-        bin_char = bits2[i:i+8]
-        img_res2 += [int(bin_char, 2)]
-        bin_char = bits3[i:i+8]
-        img_res3 += [int(bin_char, 2)]
-
-    final = np.reshape(img_res, owm.shape)
-    #cv2.imwrite(os.getcwd()  + '/Results/test_img.jpg', final)
-    return final, np.reshape(img_res2, owm.shape), np.reshape(img_res3, owm.shape)
+    result = dc_list[:wm.size]
+    result = np.reshape(result, wm.shape)
+    return result
 
 image = cv2.imread(os.getcwd() + '/Input/flower2.jpg')
-image2 = cv2.imread(os.getcwd() + '/Input/watermark2.jpeg')
+image2 = cv2.imread(os.getcwd() + '/Input/chrome.png')
 def test():
     b1,g1,r1 = cv2.split(image)
     b2,g2,r2 = cv2.split(image2)
+    '''
     b_r = test2_encode_img(b1, image2)
     g_r = test2_encode_img(g1, image2)
     r_r = test2_encode_img(r1, image2)
@@ -271,4 +230,18 @@ def test():
     result4 = np.divide(np.add(np.add(result1, result2), result3), 3)
     results = np.vstack((np.hstack((result1, result2)), np.hstack((result3, result4))))
     cv2.imwrite(os.getcwd()  + '/Results/recovered.jpg', results)
+    '''
+    b_r = test_encode_img(b1, b2)
+    g_r = test_encode_img(g1, g2)
+    r_r = test_encode_img(r1, r2)
+    result = cv2.merge((b_r, g_r, r_r))
+    cv2.imwrite(os.getcwd()  + '/Results/stegged.png', result)
+    stegged = cv2.imread(os.getcwd()  + '/Results/stegged.png')
+    b3,g3,r3 = cv2.split(stegged)
+    dc1 = test_decode_img(b3,b2)
+    dc2 = test_decode_img(g3,g2)
+    dc3 = test_decode_img(r3,r2)
+    result3 = cv2.merge((dc1, dc2, dc3))
+    cv2.imwrite(os.getcwd()  + '/Results/ecc_test.jpg', result3)
+
 test()
