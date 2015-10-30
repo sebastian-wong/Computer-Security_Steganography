@@ -34,6 +34,7 @@ def str_to_img(msg, shape):
     res = []
     for i in range(0, len(msg)):
         res.append(ord(msg[i]))
+    print shape[0]*shape[1], len(res)
     res = res[:shape[0]*shape[1]]
     return np.reshape(res, shape)
 ######################################
@@ -63,16 +64,17 @@ def ecc_decode(msg):
         res += decoded
     return res
 ######################################
+nb = 4  #number of bits to be stored per coefficient
 def store_bits(container, bits):
     shape = container.shape
     container = np.ravel(container)
-    for i in range(0, len(bits)/2):
+    for i in range(0, len(bits)/nb):
         num = bin(int(container[i]))
         num = num[num.index('b') + 1:]
-        if (len(num)<2):
-            container[i] = int(bits[i*2:i*2+2], 2)
+        if (len(num)<nb):
+            container[i] = int(bits[i*nb:i*nb+nb], 2)
         else:
-            container[i] = int(num[:len(num)-2] + bits[i*2:i*2+2],2)
+            container[i] = int(num[:len(num)-nb] + bits[i*nb:i*nb+nb],2)
     return np.reshape(container, shape)
 
 def extract_bits(container, length):
@@ -81,7 +83,7 @@ def extract_bits(container, length):
     for i in range(0, length):
         num = bin(int(container[i]))
         num = num[num.index('b') + 1:].zfill(8)
-        bits += num[len(num)-2:]
+        bits += num[len(num)-nb:]
     return bits
 
 ######################################
@@ -100,9 +102,9 @@ def encode(img, msg):
     HH = i_round_multiply(HH)
 
     result =  idwt(LL, LH, HL, HH)
-    for (i,j),d in np.ndenumerate(result):
-        result[i][j] = round(result[i][j])
-    return result
+    #for (i,j),d in np.ndenumerate(result):
+    #    result[i][j] = round(result[i][j])
+    return np.around(result)
 def encode_no_ecc(img, msg):
     LL, LH, HL, HH = dwt(img)
     HH = round_multiply(HH)
@@ -116,9 +118,9 @@ def encode_no_ecc(img, msg):
     HH = i_round_multiply(HH)
 
     result =  idwt(LL, LH, HL, HH)
-    for (i,j),d in np.ndenumerate(result):
-        result[i][j] = round(result[i][j])
-    return result
+    #for (i,j),d in np.ndenumerate(result):
+    #    result[i][j] = round(result[i][j])
+    return np.around(result)
 
 ######################################
 ##### Decoding
@@ -128,7 +130,7 @@ def decode(img, msg):
     HH = round_multiply(HH)
 
     #extract bits
-    length = int(np.ceil(msg.size / float(K)) * N * 4)
+    length = int(np.ceil(msg.size / float(K)) * N * (8/nb))
     bits = extract_bits(HH, length)
     decoded = ecc_decode(bin_to_str(bits))
 
@@ -138,20 +140,16 @@ def decode_no_ecc(img, msg):
     LL, LH, HL, HH = dwt(img)
     HH = round_multiply(HH)
     #extract bits
-    length = msg.size * 4
+    #length = msg.size * 4
+    length = msg.size * (8/nb)
     bits = extract_bits(HH, length)
     decoded = bin_to_str(bits)
     result = str_to_img(decoded, msg.shape)
     return result
 
 def test():
-    #image = cv2.imread(os.getcwd() + '/Input/flower2.jpg', cv2.CV_LOAD_IMAGE_GRAYSCALE)
     image = cv2.imread(os.getcwd() + '/Input/flower2.jpg')
-    message = cv2.imread(os.getcwd() + '/Input/chrome.png')
-    text = "AAA"
-    #res = encode(image, text)
-    #cv2.imwrite("Result.jpg", res)
-    #decode(res, text)
+    message = cv2.imread(os.getcwd() + '/Input/watermark.jpg')
 
     b,g,r = cv2.split(image)
     x,y,z = cv2.split(message)
@@ -165,10 +163,10 @@ def test():
     res3 = encode(r, z)
     res32 = encode_no_ecc(r, z)
 
-    cv2.imwrite(os.getcwd() + "/Results/Stegged.jpg", cv2.merge((res1,res2,res3)))
-    cv2.imwrite(os.getcwd() + "/Results/Stegged2.jpg", cv2.merge((res12,res22,res32)))
-    res1,res2,res3 = cv2.split(cv2.imread(os.getcwd() + '/Results/Stegged.jpg'))
-    res1,res2,res3 = cv2.split(cv2.imread(os.getcwd() + '/Results/Stegged2.jpg'))
+    cv2.imwrite(os.getcwd() + "/Results/Stegged.png", cv2.merge((res1,res2,res3)))
+    cv2.imwrite(os.getcwd() + "/Results/Stegged2.png", cv2.merge((res12,res22,res32)))
+    res1,res2,res3 = cv2.split(cv2.imread(os.getcwd() + '/Results/Stegged.png'))
+    res1,res2,res3 = cv2.split(cv2.imread(os.getcwd() + '/Results/Stegged2.png'))
 
     print "decoding blue channel..."
     dec1 = decode(res1, x)
@@ -180,7 +178,9 @@ def test():
     dec3 = decode(res3, z)
     dec32 = decode_no_ecc(res32, z)
     print "done."
+
     result = cv2.merge((dec1,dec2,dec3))
     result2 = cv2.merge((dec12,dec22,dec32))
     cv2.imwrite(os.getcwd() +"/Results/Result.jpg", result)
     cv2.imwrite(os.getcwd() +"/Results/Result2.jpg", result2)
+test()
