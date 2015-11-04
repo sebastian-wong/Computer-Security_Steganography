@@ -9,6 +9,7 @@ import os
 import cv2
 import numpy as np
 import math
+import pyexiv2
 
 #converts characters in msg to binary
 def Msg2Binary(hidden_txt):
@@ -33,7 +34,7 @@ def modifyLSB(img,bin_msg):
     for r in range(0,rows):
         for c in range(0,columns):
             blue,green,red = img[r][c]
-
+        
             if(msg_index < len(bin_msg)) and (blue%2 != int(bin_msg[msg_index],10)):
                 #modify lsb bit of pixel binary
                 if (blue%2 == 0):
@@ -110,6 +111,108 @@ def getBinaryText(img,text_len):
             if msg_index >= text_len:
                 return bin_text
 
+def Img2Binary(img):
+    rows, columns, layers = img.shape
+    bin_msg_B = ['']*rows*columns*8
+    bin_msg_G = ['']*rows*columns*8
+    bin_msg_R = ['']*rows*columns*8
+    index = 0
+    bin_string_B = ''
+    bin_string_G = ''
+    bin_string_R = ''
+    for r in range (0,rows):
+        for c in range (0,columns):
+            bin_string_B = bin(img[r][c][0])[2:].zfill(8)
+            bin_string_G = bin(img[r][c][1])[2:].zfill(8)
+            bin_string_R = bin(img[r][c][2])[2:].zfill(8)
+
+            for bit_index in range (0,8):
+                bin_msg_B[index] = bin_string_B[bit_index]
+                bin_msg_G[index] = bin_string_G[bit_index]
+                bin_msg_R[index] = bin_string_R[bit_index]     
+                index = index + 1
+                              
+    return bin_msg_B, bin_msg_G, bin_msg_R
+
+def encodeLSB(bin_msg_B, bin_msg_G, bin_msg_R,img):
+    rows, columns, layers = img.shape
+    index = 0
+    for r in range (0,rows):
+        for c in range (0,columns):
+            blue,green,red = img[r][c]
+            
+            if (blue % 2 > int(bin_msg_B[index],2)):
+                img[r][c][0] = img[r][c][0] - 1
+                
+            if (blue % 2 < int(bin_msg_B[index],2)):
+                img[r][c][0] = img[r][c][0] + 1
+
+            if (green % 2 > int(bin_msg_G[index],2)):
+                img[r][c][1] = img[r][c][1] - 1
+                
+            if (green % 2 < int(bin_msg_G[index],2)):
+                img[r][c][1] = img[r][c][1] + 1
+
+            if (red % 2 > int(bin_msg_R[index],2)):
+                img[r][c][2] = img[r][c][2] - 1
+                
+            if (red % 2 < int(bin_msg_R[index],2)):
+                img[r][c][2] = img[r][c][2] + 1
+
+            index = index + 1
+
+            if (index >= len(bin_msg_B)):
+                return img
+
+def decodeLSB(img,height,width):
+    rows, columns, layers = img.shape
+    index = 0
+    bit_count = 0
+    bin_string_B = ''
+    bin_string_G = ''
+    bin_string_R = ''
+    bin_msg_B = []
+    bin_msg_G = []
+    bin_msg_R = []
+
+    
+    for r in range (0,rows):
+        for c in range (0,columns):
+            blue,green,red = img[r][c]
+
+            lsb = blue%2
+            bin_string_B += str(lsb)
+            lsb = green%2
+            bin_string_G += str(lsb)
+            lsb = red%2
+            bin_string_R += str(lsb)
+            bit_count = bit_count + 1
+
+            if (bit_count == 8):
+                bit_count = 0
+                bin_msg_B += [int(bin_string_B, 2)]
+                bin_msg_G += [int(bin_string_G, 2)]
+                bin_msg_R += [int(bin_string_R, 2)]
+                bin_string_B = ''
+                bin_string_G = ''
+                bin_string_R = ''
+                index = index + 1  
+
+            if (index >= height*width):
+                return bin_msg_B, bin_msg_G, bin_msg_R
+
+def constructImg(height,width,msg_B, msg_G, msg_R):
+     img_result = np.zeros([height,width,3])
+     index = 0
+     for r in range(0,height):
+         for c in range(0,width):
+             img_result[r][c][0] = msg_B[index]
+             img_result[r][c][1] = msg_G[index]
+             img_result[r][c][2] = msg_R[index]
+             index = index + 1
+        
+     return img_result
+    
 def getHiddenText(bin_text):
     text = ['']*len(bin_text)
     for index in range (0,len(bin_text)):
@@ -132,17 +235,45 @@ def readHiddenText():
     text_file.close()
     return msg
     
-img = cv2.imread(os.getcwd() + "/Input/flower.jpg")
+img = cv2.imread(os.getcwd() + "/Input/tree.jpg")
+img1 = cv2.imread(os.getcwd() + "/Input/mushroom.png")
+height, width,channels = img1.shape
+
+#encoding
+bin_msg_B ,bin_msg_G, bin_msg_R = Img2Binary(img1)
+img_result = encodeLSB(bin_msg_B ,bin_msg_G, bin_msg_R,img)
+cv2.imwrite(os.getcwd() + "/Results/tree.png",img_result)
+metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
+metadata.read()
+key = 'Exif.Photo.UserComment'
+value = str(height) + " " + str(width)
+metadata[key] = pyexiv2.ExifTag(key, value)
+metadata.write()
+
+#decoding
+img = cv2.imread(os.getcwd() + "/Results/tree.png")
+metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
+metadata.read()
+tag = metadata['Exif.Photo.UserComment']
+msg_len = []
+msg_len = tag.value.split()
+msg_B ,msg_G, msg_R  = decodeLSB(img,int(msg_len[0]),int(msg_len[1]))
+img_result = constructImg(int(msg_len[0]),int(msg_len[1]),msg_B, msg_G, msg_R)
+img_result.astype('uint8')
+cv2.imwrite(os.getcwd() + "/Results/hidden.jpg",img_result)
+
+
 #read msg from .txt file
-hidden_text = readHiddenText()
-text_len = len(hidden_text)
+#hidden_text = readHiddenText()
+#text_len = len(hidden_text)
 #hiding text in image
-msg_in_bin = Msg2Binary(hidden_text)
-img_result = modifyLSB(img,msg_in_bin)
-cv2.imwrite(os.getcwd() + "/Results/flower.jpg",img_result)
+#msg_in_bin = Msg2Binary(img1)
+#msg_in_bin = Msg2Binary(hidden_text)
+#img_result = modifyLSB(img,msg_in_bin)
+#cv2.imwrite(os.getcwd() + "/Results/flower.jpg",img_result)
 #retrieving text from image
-bin_text = getBinaryText(img_result,text_len)
-text = getHiddenText(bin_text)
+#bin_text = getBinaryText(img_result,text_len)
+#text = getHiddenText(bin_text)
 #write to .txt file
-writeHiddenText(text)
+#writeHiddenText(text)
   
