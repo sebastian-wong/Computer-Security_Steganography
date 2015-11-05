@@ -18,7 +18,9 @@ def computePSNR(image1,image2):
     meanSquaredError = computeMSE(image1,image2)    
     PSNR = 10 * math.log(((255**2)/meanSquaredError),10)
     return PSNR
-    
+  
+# Computing Peak Signal to Noise ration for luma component
+# Human eye is most perceptive to the luma component    
 def computeColourPSNR(image1,image2):
     lumaImage1 = cv2.cvtColor(image1, cv2.COLOR_BGR2YCR_CB)
     lumaImage2 = cv2.cvtColor(image2, cv2.COLOR_BGR2YCR_CB)
