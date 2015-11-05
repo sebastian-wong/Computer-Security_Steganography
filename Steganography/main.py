@@ -45,15 +45,21 @@ def waveletEncoding(image,secret,name):
         res = cv2.merge((steganography.encode(b, b2), steganography.encode(g, g2), steganography.encode(r, r2)))
         cv2.imwrite(os.getcwd() + "/Results/newMilkyway.png", res)
 
-def waveletDecoding():
-    image = cv2.imread(os.getcwd() + "/Results/newMilkyway.png")        
+def waveletDecodeForImage(mainImageName):
+    image = cv2.imread(os.getcwd() + "/Results/" + mainImageName)        
     b,g,r = cv2.split(image)
     hiddenImage = cv2.imread(os.getcwd() + "/Input/mushroom.png")
     b2,g2,r2 = cv2.split(hiddenImage)
     s  = b2.shape        
     decoded = cv2.merge((steganography.decode(b,s), steganography.decode(g, s), steganography.decode(r, s)))    
-    cv2.imwrite(os.getcwd() + "/ExtractedSecret/extracted.png", decoded)
+    cv2.imwrite(os.getcwd() + "/ExtractedSecret/" + "decoded" + mainImageName[:len(mainImageName) - 4] + ".png", decoded)
 
+#def waveletDecodeForText(name):
+def waveletDecode():
+    decodeType = raw_input("Choose the decode type \n 1) Text \n 2) Image \n")
+    decodeFile = raw_input("Enter name of file to be decoded \n")
+    if decodeType == '2':
+        waveletDecodeForImage(decodeFile)    
 
 
 
