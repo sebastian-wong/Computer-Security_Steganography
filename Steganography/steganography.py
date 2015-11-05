@@ -84,6 +84,49 @@ def encode(img, msg):
     HL = np.reshape(HL, s)
     HH = np.reshape(HH, s)
     return iwt(LL, LH, HL, HH)
+    
+
+def msg_to_bin(msg):
+    rs = RSCoder(255, 223)
+    final_msg = ""
+    for i in range(0, len(msg), 223):
+        ecc_msg = rs.encode(msg[i:i+223])
+        ecc_msg = map(to_bin, list(ecc_msg))
+        final_msg += ''.join(ecc_msg)
+    return final_msg    
+    
+def to_bin(c):
+    return bin(ord(c))[2:].zfill(8)
+        
+def encodeText(img, binMsg):
+    LL, LH, HL, HH = wt(img)
+    s = LL.shape   
+
+    LL, LH, HL, HH = np.ravel(LL), np.ravel(LH), np.ravel(HL), np.ravel(HH)
+    for i in range(0, len(msg)/8):
+        LL[i] = replace_bits(LL[i], msg[i*8:i*8+2])
+        LH[i] = replace_bits(LH[i], msg[i*8+2:i*8+4])
+        HL[i] = replace_bits(HL[i], msg[i*8+4:i*8+6])
+        HH[i] = replace_bits(HH[i], msg[i*8+6:i*8+8])
+    LL = np.reshape(LL, s)
+    LH = np.reshape(LH, s)
+    HL = np.reshape(HL, s)
+    HH = np.reshape(HH, s)
+    return iwt(LL, LH, HL, HH)    
+
+def decodeText(img, length):
+    LL, LH, HL, HH = wt(img)
+    msg = ""
+    LL = np.ravel(LL)
+    LH = np.ravel(LH)
+    HL = np.ravel(HL)
+    HH = np.ravel(HH)
+    for i in range(0, length):
+        msg += extract_bits(LL[i]) + extract_bits(LH[i])
+        msg += extract_bits(HL[i]) + extract_bits(HH[i])
+    text = bin_to_msg(msg)
+    return text
+    
 
 def decode(img, (h,w)):
     LL, LH, HL, HH = wt(img)
