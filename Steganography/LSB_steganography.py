@@ -223,7 +223,7 @@ def constructText(bin_text):
     return msg
 
 def writeHiddenText(text):
-    text_file = open(os.getcwd() + "/Results/hiddenMsg.txt", "w")
+    text_file = open(os.getcwd() + "/Results/hiddenMsgLSB.txt", "w")
     text_file.write(text)
     text_file.close()
     return

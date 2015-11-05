@@ -56,14 +56,21 @@ def extract_bits(msg):
     bits = bin(msg)
     bits = bits[bits.index('b')+1:].zfill(10)
     return bits[7:9]
+    
+def txt_to_bin(txt):
+    bin_msg = []
+    for i in range(0, len(txt)):
+        bin_char = bin(ord(txt[i]))
+        bin_char = bin_char[2:]         #strip '0b'
+        bin_msg += list(bin_char)
+    return bin_msg    
 
 # in the encoding process, we replace the bits in HH coefficients
 # at position 3-4 (int values of 4 and 8). This prevents the iwt
 # from returning floating point values
 def encode(img, msg):
     LL, LH, HL, HH = wt(img)
-    s = LL.shape
-    # note to change
+    s = LL.shape   
     msg = img_to_bin(msg)
 
     LL, LH, HL, HH = np.ravel(LL), np.ravel(LH), np.ravel(HL), np.ravel(HH)
@@ -77,6 +84,49 @@ def encode(img, msg):
     HL = np.reshape(HL, s)
     HH = np.reshape(HH, s)
     return iwt(LL, LH, HL, HH)
+    
+
+def msg_to_bin(msg):
+    rs = RSCoder(255, 223)
+    final_msg = ""
+    for i in range(0, len(msg), 223):
+        ecc_msg = rs.encode(msg[i:i+223])
+        ecc_msg = map(to_bin, list(ecc_msg))
+        final_msg += ''.join(ecc_msg)
+    return final_msg    
+    
+def to_bin(c):
+    return bin(ord(c))[2:].zfill(8)
+        
+def encodeText(img, binMsg):
+    LL, LH, HL, HH = wt(img)
+    s = LL.shape   
+
+    LL, LH, HL, HH = np.ravel(LL), np.ravel(LH), np.ravel(HL), np.ravel(HH)
+    for i in range(0, len(msg)/8):
+        LL[i] = replace_bits(LL[i], msg[i*8:i*8+2])
+        LH[i] = replace_bits(LH[i], msg[i*8+2:i*8+4])
+        HL[i] = replace_bits(HL[i], msg[i*8+4:i*8+6])
+        HH[i] = replace_bits(HH[i], msg[i*8+6:i*8+8])
+    LL = np.reshape(LL, s)
+    LH = np.reshape(LH, s)
+    HL = np.reshape(HL, s)
+    HH = np.reshape(HH, s)
+    return iwt(LL, LH, HL, HH)    
+
+def decodeText(img, length):
+    LL, LH, HL, HH = wt(img)
+    msg = ""
+    LL = np.ravel(LL)
+    LH = np.ravel(LH)
+    HL = np.ravel(HL)
+    HH = np.ravel(HH)
+    for i in range(0, length):
+        msg += extract_bits(LL[i]) + extract_bits(LH[i])
+        msg += extract_bits(HL[i]) + extract_bits(HH[i])
+    text = bin_to_msg(msg)
+    return text
+    
 
 def decode(img, (h,w)):
     LL, LH, HL, HH = wt(img)
@@ -102,9 +152,9 @@ def decode2(img, (h,w)):
 
 def test():
     image = cv2.imread("building.jpg")
-    imagex = cv2.imread("building.jpg", 0)
-    ll, lh, hl, hh = wt(imagex)
-    cv2.imwrite("building_wt.png", np.hstack((np.vstack((ll,hl)), np.vstack((lh,hh)))))
+    # imagex = cv2.imread("building.jpg", 0)
+    # ll, lh, hl, hh = wt(imagex)
+    # cv2.imwrite("building_wt.png", np.hstack((np.vstack((ll,hl)), np.vstack((lh,hh)))))
 
 
     b,g,r = cv2.split(image)
