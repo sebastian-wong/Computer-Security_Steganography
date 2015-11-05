@@ -8,8 +8,8 @@ import math
 # meanSquaredError = 0 indicates complete similarity,
 # meanSquaredError > 1, the higher the value the less similar the images
 def computeMSE(image1,image2):
-    rows, columns = grayImage1.shape
-    meanSquaredError = np.sum((grayImage1.astype("float") - grayImage2.astype("float")) ** 2)
+    rows, columns = image1.shape
+    meanSquaredError = np.sum((image1.astype("float") - image2.astype("float")) ** 2)
     meanSquaredError /= float(rows * columns)
     return meanSquaredError
 
@@ -29,7 +29,7 @@ def computeColourPSNR(image1,image2):
     Y2, Cr2, Cb2 = cv2.split(lumaImage2)
     return computePSNR(Y1,Y2)    
     
-        
+infinity = float("inf")        
 # change these files to test image
 img1 = cv2.imread(os.getcwd() + "/Input/flower.jpg")
 img2 = cv2.imread(os.getcwd() + "/Input/flower_edit.jpg")
