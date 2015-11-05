@@ -56,14 +56,21 @@ def extract_bits(msg):
     bits = bin(msg)
     bits = bits[bits.index('b')+1:].zfill(10)
     return bits[7:9]
+    
+def txt_to_bin(txt):
+    bin_msg = []
+    for i in range(0, len(txt)):
+        bin_char = bin(ord(txt[i]))
+        bin_char = bin_char[2:]         #strip '0b'
+        bin_msg += list(bin_char)
+    return bin_msg    
 
 # in the encoding process, we replace the bits in HH coefficients
 # at position 3-4 (int values of 4 and 8). This prevents the iwt
 # from returning floating point values
 def encode(img, msg):
     LL, LH, HL, HH = wt(img)
-    s = LL.shape
-    # note to change
+    s = LL.shape   
     msg = img_to_bin(msg)
 
     LL, LH, HL, HH = np.ravel(LL), np.ravel(LH), np.ravel(HL), np.ravel(HH)
@@ -102,9 +109,9 @@ def decode2(img, (h,w)):
 
 def test():
     image = cv2.imread("building.jpg")
-    imagex = cv2.imread("building.jpg", 0)
-    ll, lh, hl, hh = wt(imagex)
-    cv2.imwrite("building_wt.png", np.hstack((np.vstack((ll,hl)), np.vstack((lh,hh)))))
+    # imagex = cv2.imread("building.jpg", 0)
+    # ll, lh, hl, hh = wt(imagex)
+    # cv2.imwrite("building_wt.png", np.hstack((np.vstack((ll,hl)), np.vstack((lh,hh)))))
 
 
     b,g,r = cv2.split(image)
