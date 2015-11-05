@@ -23,7 +23,7 @@ import steganography
 #         metadata[key] = pyexiv2.ExifTag(key, value)
 #         metadata.write()
 
-def waveletEncoding(image,secret,name):
+def waveletEncoding(imageName,image,secret,name):
     # Hiding text image
     if (secret == '1'):
         # encoding for text
@@ -33,7 +33,7 @@ def waveletEncoding(image,secret,name):
         print binaryText
         b,g,r = cv2.split(image)
         res = cv2.merge((steganography.encode(b, binaryText), steganography.encode(g, binaryText), steganography.encode(r, binaryText)))
-        cv2.imwrite(os.getcwd() + "/Results/newMilkyway_wavelettext.png", res)
+        cv2.imwrite(os.getcwd() + "/Results/" + imageName + "_wavelet_text.png", res)
          
     # Hiding image
     if (secret == '2'):
@@ -43,16 +43,17 @@ def waveletEncoding(image,secret,name):
         b2,g2,r2 = cv2.split(hiddenImage)
         binHiddenImage = steganography.img_to_bin(hiddenImage)
         res = cv2.merge((steganography.encode(b, b2), steganography.encode(g, g2), steganography.encode(r, r2)))
-        cv2.imwrite(os.getcwd() + "/Results/newMilkyway.png", res)
+        cv2.imwrite(os.getcwd() + "/Results/" +  + imageName + "_wavelet_image.png", res)
 
-def waveletDecodeForImage(mainImageName):
-    image = cv2.imread(os.getcwd() + "/Results/" + mainImageName)        
+def waveletDecodeForImage(decodeImageName):
+    image = cv2.imread(os.getcwd() + "/Results/" + decodeImageName)        
     b,g,r = cv2.split(image)
+    # problematic, need to determine metadata instead or rereading
     hiddenImage = cv2.imread(os.getcwd() + "/Input/mushroom.png")
     b2,g2,r2 = cv2.split(hiddenImage)
     s  = b2.shape        
     decoded = cv2.merge((steganography.decode(b,s), steganography.decode(g, s), steganography.decode(r, s)))    
-    cv2.imwrite(os.getcwd() + "/ExtractedSecret/" + "decoded" + mainImageName[:len(mainImageName) - 4] + ".png", decoded)
+    cv2.imwrite(os.getcwd() + "/ExtractedSecret/" + "decoded" + decodeImageName[:len(decodeImageName) - 4] + ".png", decoded)
 
 #def waveletDecodeForText(name):
 def waveletDecode():
@@ -68,13 +69,17 @@ mainImageName  = raw_input("Please enter the name of the main image \n")
 secret = raw_input("Please enter the type of message to hide. \n 1) Text \n 2) Picture \n")
 path = raw_input("Please enter the name of the file \n")
 mainImage = cv2.imread(os.getcwd() + "/Input/" + mainImageName)
+# remove .jpg or .png
+mainImageName = mainImageName[:len(mainImageName)-4]
+
+
 
 if (steganographyType == "1"):
     print "here"    
         
 elif (steganographyType == '2'):
     print "Using wavelet encoding"
-    waveletEncoding(mainImage,secret,path)
+    waveletEncoding(mainImageName,mainImage,secret,path)
 else:
     print "Invalid Input, please select one or two"
     
