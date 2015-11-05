@@ -30,46 +30,17 @@ def computeColourPSNR(image1,image2):
     return computePSNR(Y1,Y2)    
     
         
-# # testing
-# img1 = cv2.imread(os.getcwd() + "/Input/flower.jpg")
-# img2 = cv2.imread(os.getcwd() + "/Input/flower_edit.jpg")
-#
-# # Converting to grayscale
-# grayImage1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-# grayImage2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-#
-# # Testing MSE
-# # same image
-# mse = computeMSE(grayImage1,grayImage1)
-# print "mse for similar images"
-# print mse
-# # different image
-# mse = computeMSE(grayImage1,grayImage2)
-# print "mse for different images"
-# print mse
-#
-# # Testing PSNR
-# infinity = float("inf")
-# # same image
-# PSNR = computePSNR(grayImage1,grayImage1)
-# if (PSNR == infinity):
-#     print "PSNR for similar images"
-#     print "infinite"
-# # different image
-# PSNR = computePSNR(grayImage1,grayImage2)
-# print "PSNR for different images"
-# print PSNR
-#
-# # Testing coloured PSNR
-# colouredPSNR = computeColourPSNR(img1,img1)
-# # same image
-# if (colouredPSNR == infinity):
-#     print "colouredPSNR for similar images"
-#     print "infinite"
-# # different image
-# colouredPSNR = computeColourPSNR(img1,img2)
-# print "colouredPSNR for different images"
-# print colouredPSNR
+# change these files to test image
+img1 = cv2.imread(os.getcwd() + "/Input/flower.jpg")
+img2 = cv2.imread(os.getcwd() + "/Input/flower_edit.jpg")
+# Testing coloured PSNR
+colouredPSNR = computeColourPSNR(img1,img2)
+# infinite means images are exactly the same
+if (colouredPSNR == infinity):
+    print "colouredPSNR for similar images"
+    print "infinite"
+print "images are different"
+print colouredPSNR
 
 
 
