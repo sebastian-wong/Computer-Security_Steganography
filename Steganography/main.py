@@ -1,7 +1,7 @@
 import os
 import cv2
 import LSB_steganography as lsb
-import ImageComparison
+#import ImageComparison
 import steganography
 import rs as reedSolomon
 import polynomial
@@ -49,8 +49,10 @@ def lsbEncoding(secret,name,coverImg,coverImgName):
 def lsbDecoding(secret,coverImgName):
     #decode hidden text
     if (secret == '1'):
-        img = cv2.imread(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
-        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
+        #img = cv2.imread(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
+        img = cv2.imread(os.getcwd() + "/Results/" + coverImgName)
+        #metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
+        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName)
         metadata.read()
         tag = metadata['Exif.Photo.UserComment']
         text_len = tag.value
@@ -61,8 +63,9 @@ def lsbDecoding(secret,coverImgName):
 
      #decode for hidden image
     if (secret == '2'):
-        img = cv2.imread(os.getcwd() + "/Results/" + coverImgName + "_lsb_image.png")
-        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_image.png")
+        img = cv2.imread(os.getcwd() + "/Results/" + coverImgName)
+        print img
+        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName)
         metadata.read()
         tag = metadata['Exif.Photo.UserComment']
         msg_len = []
@@ -70,7 +73,7 @@ def lsbDecoding(secret,coverImgName):
         msg_B ,msg_G, msg_R  = lsb.decodeImageLSB(img,int(msg_len[0]),int(msg_len[1]))
         img_result = lsb.constructImg(int(msg_len[0]),int(msg_len[1]),msg_B, msg_G, msg_R)
         img_result.astype('uint8')
-        cv2.imwrite(os.getcwd() + "/Results/" + coverImgName + "_lsb_hidden.png",img_result)
+        cv2.imwrite(os.getcwd() + "/ExtractedSecret/" + coverImgName + "_lsb_hidden.png",img_result)
 
 
 def waveletEncoding(imageName,image,secret,name):
@@ -121,7 +124,15 @@ def waveletDecode():
     if decodeType == '1':
         waveletDecodeForText(decodeFile)
     if decodeType == '2':
-        waveletDecodeForImage(decodeFile)    
+        waveletDecodeForImage(decodeFile)
+
+def lsbDecode():
+     decodeType = raw_input("Choose the decode type \n 1) Text \n 2) Image \n")
+     decodeFile = raw_input("Enter name of file to be decoded \n")
+     if decodeType == '1':
+         lsbDecoding('1',decodeFile)
+     if decodeType == '2':
+         lsbDecoding('2',decodeFile)         
 
 steganographyType = raw_input("Please enter the mode of steganography. \n 1) Least Significant Bit \n 2) Wavelet Transform \n")
 mainImageName  = raw_input("Please enter the name of the main image \n")
@@ -135,7 +146,7 @@ mainImageName = mainImageName[:len(mainImageName)-4]
 if (steganographyType == "1"):
     print "Using LSB encoding"
     lsbEncoding(secret,path,mainImage,mainImageName)
-    lsbDecoding(secret,mainImageName)
+    #lsbDecoding(secret,mainImageName)
         
 elif (steganographyType == '2'):
     print "Using wavelet encoding"
