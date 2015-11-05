@@ -2,6 +2,9 @@ import os
 import cv2
 import numpy as np
 import sys
+import rs as reedsolomon
+import polynomial
+import ff   
 
 # custom modified version of haar transform mapping integer to integer
 # values range from -510 to 1010
@@ -41,9 +44,9 @@ def img_to_bin(img):
     return res
 
 def bin_to_msg(bits):
-    res = []
+    res = ""
     for i in range(0, len(bits), 8):
-        res.append(int(bits[i:i+8], 2))
+        res += (chr(int(bits[i:i+8], 2)))
     return res
 
 def replace_bits(msg, rep):
@@ -72,7 +75,6 @@ def encode(img, msg):
     LL, LH, HL, HH = wt(img)
     s = LL.shape   
     msg = img_to_bin(msg)
-
     LL, LH, HL, HH = np.ravel(LL), np.ravel(LH), np.ravel(HL), np.ravel(HH)
     for i in range(0, len(msg)/8):
         LL[i] = replace_bits(LL[i], msg[i*8:i*8+2])
@@ -86,14 +88,20 @@ def encode(img, msg):
     return iwt(LL, LH, HL, HH)
     
 
-def msg_to_bin(msg):
-    rs = RSCoder(255, 223)
+def msg_to_bin_error_correction(msg):
+    rs = reedsolomon.RSCoder(255,223)
     final_msg = ""
     for i in range(0, len(msg), 223):
         ecc_msg = rs.encode(msg[i:i+223])
         ecc_msg = map(to_bin, list(ecc_msg))
         final_msg += ''.join(ecc_msg)
-    return final_msg    
+    return final_msg
+
+def msg_to_bin(msg):
+    final_msg = ""
+    for i in range(0, len(msg)):
+        final_msg += to_bin(msg[i])
+    return final_msg
     
 def to_bin(c):
     return bin(ord(c))[2:].zfill(8)
@@ -101,13 +109,12 @@ def to_bin(c):
 def encodeText(img, binMsg):
     LL, LH, HL, HH = wt(img)
     s = LL.shape   
-
     LL, LH, HL, HH = np.ravel(LL), np.ravel(LH), np.ravel(HL), np.ravel(HH)
-    for i in range(0, len(msg)/8):
-        LL[i] = replace_bits(LL[i], msg[i*8:i*8+2])
-        LH[i] = replace_bits(LH[i], msg[i*8+2:i*8+4])
-        HL[i] = replace_bits(HL[i], msg[i*8+4:i*8+6])
-        HH[i] = replace_bits(HH[i], msg[i*8+6:i*8+8])
+    for i in range(0, len(binMsg)/8):
+        LL[i] = replace_bits(LL[i], binMsg[i*8:i*8+2])
+        LH[i] = replace_bits(LH[i], binMsg[i*8+2:i*8+4])
+        HL[i] = replace_bits(HL[i], binMsg[i*8+4:i*8+6])
+        HH[i] = replace_bits(HH[i], binMsg[i*8+6:i*8+8])
     LL = np.reshape(LL, s)
     LH = np.reshape(LH, s)
     HL = np.reshape(HL, s)
@@ -115,6 +122,7 @@ def encodeText(img, binMsg):
     return iwt(LL, LH, HL, HH)    
 
 def decodeText(img, length):
+    decode = reedsolomon.RSCoder(255, 223)
     LL, LH, HL, HH = wt(img)
     msg = ""
     LL = np.ravel(LL)
@@ -125,7 +133,10 @@ def decodeText(img, length):
         msg += extract_bits(LL[i]) + extract_bits(LH[i])
         msg += extract_bits(HL[i]) + extract_bits(HH[i])
     text = bin_to_msg(msg)
-    return text
+    print text
+    decodedText = decode.decode(text)
+    print decodedText
+    return decodedText
     
 
 def decode(img, (h,w)):
