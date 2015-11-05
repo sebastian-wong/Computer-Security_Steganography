@@ -28,7 +28,7 @@ def Msg2Binary(hidden_txt):
             msg_index += 1
     return bin_msg
     
-def modifyLSB(img,bin_msg):
+def encodeTextLSB(img,bin_msg):
     rows,columns,channels = img.shape
     msg_index = 0
     for r in range(0,rows):
@@ -66,7 +66,7 @@ def modifyLSB(img,bin_msg):
             if msg_index >= len(bin_msg):
                 return img   
 
-def getBinaryText(img,text_len):
+def decodeTextLSB(img,text_len):
     rows,columns,channels = img.shape
     bin_text=['']*text_len
     bit_count = 0
@@ -134,7 +134,7 @@ def Img2Binary(img):
                               
     return bin_msg_B, bin_msg_G, bin_msg_R
 
-def encodeLSB(bin_msg_B, bin_msg_G, bin_msg_R,img):
+def encodeImageLSB(bin_msg_B, bin_msg_G, bin_msg_R,img):
     rows, columns, layers = img.shape
     index = 0
     for r in range (0,rows):
@@ -164,7 +164,7 @@ def encodeLSB(bin_msg_B, bin_msg_G, bin_msg_R,img):
             if (index >= len(bin_msg_B)):
                 return img
 
-def decodeLSB(img,height,width):
+def decodeImageLSB(img,height,width):
     rows, columns, layers = img.shape
     index = 0
     bit_count = 0
@@ -213,18 +213,17 @@ def constructImg(height,width,msg_B, msg_G, msg_R):
         
      return img_result
     
-def getHiddenText(bin_text):
+def constructText(bin_text):
     text = ['']*len(bin_text)
     for index in range (0,len(bin_text)):
         char = chr(int(bin_text[index], 2))
         text[index] = char
     #return a string
     msg =  ''.join(text)
-    print msg
     return msg
 
 def writeHiddenText(text):
-    text_file = open(os.getcwd() + "/Results/hiddenMsg.txt", "w")
+    text_file = open(os.getcwd() + "/Results/hiddenMsgLSB.txt", "w")
     text_file.write(text)
     text_file.close()
     return
@@ -235,63 +234,63 @@ def readHiddenText(filename):
     text_file.close()
     return msg
     
-# def readHiddenText():
-#     text_file = open(os.getcwd() + "/Input/msg.txt", "r")
-#     msg = text_file.read()
-#     text_file.close()
-#     return msg
-    
-# img = cv2.imread(os.getcwd() + "/Input/tree.jpg")
-# img1 = cv2.imread(os.getcwd() + "/Input/mushroom.png")
-# height, width,channels = img1.shape
-#
-# #encoding for images
-# bin_msg_B ,bin_msg_G, bin_msg_R = Img2Binary(img1)
-# img_result = encodeLSB(bin_msg_B ,bin_msg_G, bin_msg_R,img)
-# cv2.imwrite(os.getcwd() + "/Results/tree.png",img_result)
-# #write metadata to image
-# metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
-# metadata.read()
-# key = 'Exif.Photo.UserComment'
-# value = str(height) + " " + str(width)
-# metadata[key] = pyexiv2.ExifTag(key, value)
-# metadata.write()
-#
-# #decoding for images
-# img = cv2.imread(os.getcwd() + "/Results/tree.png")
-# metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
-# metadata.read()
-# tag = metadata['Exif.Photo.UserComment']
-# msg_len = []
-# msg_len = tag.value.split()
-# msg_B ,msg_G, msg_R  = decodeLSB(img,int(msg_len[0]),int(msg_len[1]))
-# img_result = constructImg(int(msg_len[0]),int(msg_len[1]),msg_B, msg_G, msg_R)
-# img_result.astype('uint8')
-# cv2.imwrite(os.getcwd() + "/Results/hidden.jpg",img_result)
-#
-# #encoding for text
-# img = cv2.imread(os.getcwd() + "/Input/flower.jpg")
-# hidden_text = readHiddenText()
-# text_len = len(hidden_text)
-# #hiding text in image
-# msg_in_bin = Msg2Binary(hidden_text)
-# img_result = modifyLSB(img,msg_in_bin)
-# cv2.imwrite(os.getcwd() + "/Results/flower.jpg",img_result)
-# metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.jpg")
-# metadata.read()
-# key = 'Exif.Photo.UserComment'
-# value = str(text_len)
-# metadata[key] = pyexiv2.ExifTag(key, value)
-# metadata.write()
-#
-# #decoding for text
-# img = cv2.imread(os.getcwd() + "/Results/flower.jpg")
-# metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.jpg")
-# metadata.read()
-# tag = metadata['Exif.Photo.UserComment']
-# text_len = tag.value
-# bin_text = getBinaryText(img_result,int(text_len))
-# text = getHiddenText(bin_text)
-# #write to .txt file
-# writeHiddenText(text)
+def readHiddenText(filename):
+ text_file = open(os.getcwd() + "/Input/" + filename, "r")
+ msg = text_file.read()
+ text_file.close()
+ return msg
+
+##img = cv2.imread(os.getcwd() + "/Input/tree.jpg")
+##img1 = cv2.imread(os.getcwd() + "/Input/mushroom.png")
+##height, width,channels = img1.shape
+##
+###encoding for images
+##bin_msg_B ,bin_msg_G, bin_msg_R = Img2Binary(img1)
+##img_result = encodeLSB(bin_msg_B ,bin_msg_G, bin_msg_R,img)
+##cv2.imwrite(os.getcwd() + "/Results/tree.png",img_result)
+###write metadata to image
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
+##metadata.read()
+##key = 'Exif.Photo.UserComment'
+##value = str(height) + " " + str(width)
+##metadata[key] = pyexiv2.ExifTag(key, value)
+##metadata.write()
+##
+###decoding for images
+##img = cv2.imread(os.getcwd() + "/Results/tree.png")
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
+##metadata.read()
+##tag = metadata['Exif.Photo.UserComment']
+##msg_len = []
+##msg_len = tag.value.split()
+##msg_B ,msg_G, msg_R  = decodeLSB(img,int(msg_len[0]),int(msg_len[1]))
+##img_result = constructImg(int(msg_len[0]),int(msg_len[1]),msg_B, msg_G, msg_R)
+##img_result.astype('uint8')
+##cv2.imwrite(os.getcwd() + "/Results/hidden.jpg",img_result)
+##
+###encoding for text
+##img = cv2.imread(os.getcwd() + "/Input/flower.jpg")
+##hidden_text = readHiddenText()
+##text_len = len(hidden_text)
+###hiding text in image
+##msg_in_bin = Msg2Binary(hidden_text)
+##img_result = modifyLSB(img,msg_in_bin)
+##cv2.imwrite(os.getcwd() + "/Results/flower.png",img_result)
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.png")
+##metadata.read()
+##key = 'Exif.Photo.UserComment'
+##value = str(text_len)
+##metadata[key] = pyexiv2.ExifTag(key, value)
+##metadata.write()
+##
+###decoding for text
+##img = cv2.imread(os.getcwd() + "/Results/flower.png")
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.png")
+##metadata.read()
+##tag = metadata['Exif.Photo.UserComment']
+##text_len = tag.value
+##bin_text = getBinaryText(img,int(text_len))
+##text = getHiddenText(bin_text)
+###write to .txt file
+##writeHiddenText(text)
   
