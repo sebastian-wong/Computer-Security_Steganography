@@ -20,13 +20,13 @@ def lsbEncoding(secret,name,coverImg,coverImgName):
         img_result = lsb.encodeTextLSB(coverImg,msg_in_bin)
         cv2.imwrite(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png",img_result)
         #get metadata of image
-        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
-        metadata.read()
-        key = 'Exif.Photo.UserComment'
-        value = str(len(hidden_text))
-        metadata[key] = pyexiv2.ExifTag(key, value)
+        #metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
+        #metadata.read()
+        #key = 'Exif.Photo.UserComment'
+        #value = str(len(hidden_text))
+        #metadata[key] = pyexiv2.ExifTag(key, value)
         #write hidden msg length to metadata
-        metadata.write()
+        #metadata.write()
 
     if (secret == '2'):
         #read hidden image
@@ -37,26 +37,27 @@ def lsbEncoding(secret,name,coverImg,coverImgName):
         img_result = lsb.encodeImageLSB(bin_msg_B ,bin_msg_G, bin_msg_R,coverImg)
         cv2.imwrite(os.getcwd() + "/Results/" + coverImgName + "_lsb_image.png",img_result)
         #get metadata tof image
-        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_image.png")
-        metadata.read()
-        key = 'Exif.Photo.UserComment'
-        height, width , channels = hidden_img.shape
-        value = str(height) + " " + str(width)
-        metadata[key] = pyexiv2.ExifTag(key, value)
+        #metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_image.png")
+        #metadata.read()
+        #key = 'Exif.Photo.UserComment'
+        #height, width , channels = hidden_img.shape
+        #value = str(height) + " " + str(width)
+        #metadata[key] = pyexiv2.ExifTag(key, value)
         #write hidden msg dimensions to metadata
-        metadata.write()
+        #metadata.write()
 
-def lsbDecoding(secret,coverImgName):
+def lsbDecoding(secret,coverImgName,length):
     #decode hidden text
     if (secret == '1'):
         #img = cv2.imread(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
         img = cv2.imread(os.getcwd() + "/Results/" + coverImgName)
         #metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName + "_lsb_text.png")
-        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName)
-        metadata.read()
-        tag = metadata['Exif.Photo.UserComment']
-        text_len = tag.value
-        bin_text = lsb.decodeTextLSB(img,int(text_len))
+        #metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName)
+        #metadata.read()
+        #tag = metadata['Exif.Photo.UserComment']
+        #text_len = tag.value
+        #bin_text = lsb.decodeTextLSB(img,int(text_len))
+        bin_text = lsb.decodeTextLSB(img,int(length))
         text = lsb.constructText(bin_text)
         #write to .txt file
         lsb.writeHiddenText(text)
@@ -64,12 +65,13 @@ def lsbDecoding(secret,coverImgName):
      #decode for hidden image
     if (secret == '2'):
         img = cv2.imread(os.getcwd() + "/Results/" + coverImgName)
-        print img
-        metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName)
-        metadata.read()
-        tag = metadata['Exif.Photo.UserComment']
+        #print img
+        #metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/" + coverImgName)
+        #metadata.read()
+        #tag = metadata['Exif.Photo.UserComment']
         msg_len = []
-        msg_len = tag.value.split()
+        #msg_len = tag.value.split()
+        msg_len = length.split()
         msg_B ,msg_G, msg_R  = lsb.decodeImageLSB(img,int(msg_len[0]),int(msg_len[1]))
         img_result = lsb.constructImg(int(msg_len[0]),int(msg_len[1]),msg_B, msg_G, msg_R)
         img_result.astype('uint8')
@@ -129,10 +131,12 @@ def waveletDecode():
 def lsbDecode():
      decodeType = raw_input("Choose the decode type \n 1) Text \n 2) Image \n")
      decodeFile = raw_input("Enter name of file to be decoded \n")
+     length = raw_input("Enter dimensions of hidden file \n")
+     
      if decodeType == '1':
-         lsbDecoding('1',decodeFile)
+         lsbDecoding('1',decodeFile,length)
      if decodeType == '2':
-         lsbDecoding('2',decodeFile)         
+         lsbDecoding('2',decodeFile,length)         
 
 steganographyType = raw_input("Please enter the mode of steganography. \n 1) Least Significant Bit \n 2) Wavelet Transform \n")
 mainImageName  = raw_input("Please enter the name of the main image \n")
