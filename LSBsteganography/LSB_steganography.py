@@ -235,57 +235,57 @@ def readHiddenText():
     text_file.close()
     return msg
     
-img = cv2.imread(os.getcwd() + "/Input/tree.jpg")
-img1 = cv2.imread(os.getcwd() + "/Input/mushroom.png")
-height, width,channels = img1.shape
-
-#encoding for images
-bin_msg_B ,bin_msg_G, bin_msg_R = Img2Binary(img1)
-img_result = encodeLSB(bin_msg_B ,bin_msg_G, bin_msg_R,img)
-cv2.imwrite(os.getcwd() + "/Results/tree.png",img_result)
-#write metadata to image
-metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
-metadata.read()
-key = 'Exif.Photo.UserComment'
-value = str(height) + " " + str(width)
-metadata[key] = pyexiv2.ExifTag(key, value)
-metadata.write()
-
-#decoding for images
-img = cv2.imread(os.getcwd() + "/Results/tree.png")
-metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
-metadata.read()
-tag = metadata['Exif.Photo.UserComment']
-msg_len = []
-msg_len = tag.value.split()
-msg_B ,msg_G, msg_R  = decodeLSB(img,int(msg_len[0]),int(msg_len[1]))
-img_result = constructImg(int(msg_len[0]),int(msg_len[1]),msg_B, msg_G, msg_R)
-img_result.astype('uint8')
-cv2.imwrite(os.getcwd() + "/Results/hidden.jpg",img_result)
-
-#encoding for text
-img = cv2.imread(os.getcwd() + "/Input/flower.jpg")
-hidden_text = readHiddenText()
-text_len = len(hidden_text)
-#hiding text in image
-msg_in_bin = Msg2Binary(hidden_text)
-img_result = modifyLSB(img,msg_in_bin)
-cv2.imwrite(os.getcwd() + "/Results/flower.jpg",img_result)
-metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.jpg")
-metadata.read()
-key = 'Exif.Photo.UserComment'
-value = str(text_len)
-metadata[key] = pyexiv2.ExifTag(key, value)
-metadata.write()
-
-#decoding for text
-img = cv2.imread(os.getcwd() + "/Results/flower.jpg")
-metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.jpg")
-metadata.read()
-tag = metadata['Exif.Photo.UserComment']
-text_len = tag.value
-bin_text = getBinaryText(img_result,int(text_len))
-text = getHiddenText(bin_text)
-#write to .txt file
-writeHiddenText(text)
-  
+##img = cv2.imread(os.getcwd() + "/Input/tree.jpg")
+##img1 = cv2.imread(os.getcwd() + "/Input/mushroom.png")
+##height, width,channels = img1.shape
+##
+###encoding for images
+##bin_msg_B ,bin_msg_G, bin_msg_R = Img2Binary(img1)
+##img_result = encodeLSB(bin_msg_B ,bin_msg_G, bin_msg_R,img)
+##cv2.imwrite(os.getcwd() + "/Results/tree.png",img_result)
+###write metadata to image
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
+##metadata.read()
+##key = 'Exif.Photo.UserComment'
+##value = str(height) + " " + str(width)
+##metadata[key] = pyexiv2.ExifTag(key, value)
+##metadata.write()
+##
+###decoding for images
+##img = cv2.imread(os.getcwd() + "/Results/tree.png")
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/tree.png")
+##metadata.read()
+##tag = metadata['Exif.Photo.UserComment']
+##msg_len = []
+##msg_len = tag.value.split()
+##msg_B ,msg_G, msg_R  = decodeLSB(img,int(msg_len[0]),int(msg_len[1]))
+##img_result = constructImg(int(msg_len[0]),int(msg_len[1]),msg_B, msg_G, msg_R)
+##img_result.astype('uint8')
+##cv2.imwrite(os.getcwd() + "/Results/hidden.jpg",img_result)
+##
+###encoding for text
+##img = cv2.imread(os.getcwd() + "/Input/flower.jpg")
+##hidden_text = readHiddenText()
+##text_len = len(hidden_text)
+###hiding text in image
+##msg_in_bin = Msg2Binary(hidden_text)
+##img_result = modifyLSB(img,msg_in_bin)
+##cv2.imwrite(os.getcwd() + "/Results/flower.jpg",img_result)
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.jpg")
+##metadata.read()
+##key = 'Exif.Photo.UserComment'
+##value = str(text_len)
+##metadata[key] = pyexiv2.ExifTag(key, value)
+##metadata.write()
+##
+###decoding for text
+##img = cv2.imread(os.getcwd() + "/Results/flower.jpg")
+##metadata = pyexiv2.ImageMetadata(os.getcwd() + "/Results/flower.jpg")
+##metadata.read()
+##tag = metadata['Exif.Photo.UserComment']
+##text_len = tag.value
+##bin_text = getBinaryText(img_result,int(text_len))
+##text = getHiddenText(bin_text)
+###write to .txt file
+##writeHiddenText(text)
+##  
