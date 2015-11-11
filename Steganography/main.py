@@ -149,7 +149,7 @@ mainImageName = mainImageName[:len(mainImageName)-4]
 
 if (steganographyType == "1"):
     print "Using LSB encoding"
-    lsbEncoding(secret,path,mainImage,mainImageName)
+    lsbEncoding(secret,file,mainImage,mainImageName)
     #lsbDecoding(secret,mainImageName)
         
 elif (steganographyType == '2'):
