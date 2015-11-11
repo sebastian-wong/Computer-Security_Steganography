@@ -15,9 +15,12 @@ def computeMSE(image1,image2):
 
 # Computing Peak Signal to Noise ratio
 def computePSNR(image1,image2):
-    meanSquaredError = computeMSE(image1,image2)    
-    PSNR = 10 * math.log(((255**2)/meanSquaredError),10)
-    return PSNR
+    meanSquaredError = computeMSE(image1,image2)
+    if (meanSquaredError == 0):
+        return "No difference"
+    else:    
+        PSNR = 10 * math.log(((255**2)/meanSquaredError),10)
+        return PSNR
   
 # Computing Peak Signal to Noise ration for luma component
 # Human eye is most perceptive to the luma component    n    
@@ -27,20 +30,27 @@ def computeColourPSNR(image1,image2):
     cv2.imwrite("luma1.jpg",lumaImage1)
     Y1, Cr1, Cb1 = cv2.split(lumaImage1)
     Y2, Cr2, Cb2 = cv2.split(lumaImage2)
-    return computePSNR(Y1,Y2)    
-    
-infinity = float("inf")        
-# change these files to test image
-img1 = cv2.imread(os.getcwd() + "/comparison/mushroom.png")
-img2 = cv2.imread(os.getcwd() + "/comparison/lsb_inverse.png")
-# Testing coloured PSNR
-colouredPSNR = computeColourPSNR(img1,img2)
-# infinite means images are exactly the same
-if (colouredPSNR == infinity):
-    print "colouredPSNR for similar images"
-    print "infinite"
-print "images are different"
-print colouredPSNR
+    result = computePSNR(Y1,Y2)
+    if result == "No difference":
+        return "No difference"
+    else:
+        return result    
+            
+
+# if __name__ == "__main__":
+#     infinity = float("inf")
+#     # change these files to test image
+#     img1 = cv2.imread(os.getcwd() + "/comparison/mushroom.png")
+#     img2 = cv2.imread(os.getcwd() + "/comparison/milkyway_lsb_image.png_lsb_hidden.png")
+#     # Testing coloured PSNR
+#     colouredPSNR = computeColourPSNR(img1,img2)
+#     # infinite means images are exactly the same
+#     if (colouredPSNR == infinity):
+#         print "colouredPSNR for similar images"
+#         print "infinite"
+#     else:
+#         print "images are different"
+#         print colouredPSNR
 
 
 

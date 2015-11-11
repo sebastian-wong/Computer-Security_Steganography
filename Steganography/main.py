@@ -98,7 +98,7 @@ def waveletEncoding(imageName,image,secret,name):
         hiddenImage = cv2.imread(os.getcwd() + "/Input/" + name)
         b2,g2,r2 = cv2.split(hiddenImage)
         binHiddenImage = steganography.img_to_bin(hiddenImage)
-        res = cv2.merge((steganography.encode(b, b2), steganography.encode(g, g2), steganography.encode(r, r2)))
+        res = cv2.merge((steganography.encode2(b, b2), steganography.encode2(g, g2), steganography.encode2(r, r2)))
         cv2.imwrite(os.getcwd() + "/Results/" + imageName + "_wavelet_image.png", res)
 
 def waveletDecodeForImage(decodeImageName):
@@ -108,7 +108,7 @@ def waveletDecodeForImage(decodeImageName):
     hiddenImage = cv2.imread(os.getcwd() + "/Input/mushroom.png")
     b2,g2,r2 = cv2.split(hiddenImage)
     s  = b2.shape        
-    decoded = cv2.merge((steganography.decode(b,s), steganography.decode(g, s), steganography.decode(r, s)))    
+    decoded = cv2.merge((steganography.decode2(b,s), steganography.decode2(g, s), steganography.decode2(r, s)))    
     cv2.imwrite(os.getcwd() + "/ExtractedSecret/" + "decoded" + decodeImageName[:len(decodeImageName) - 4] + ".png", decoded)
 
 def waveletDecodeForText(decodeImageName):

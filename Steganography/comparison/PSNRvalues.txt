@@ -1,0 +1,45 @@
+PSNR values for cover images
+
+original with wavelet = 65.9468852426
+original with wavelet2 = 68.7915117965
+original with lsb = 69.7906118225
+
+
+PSNR values for extracted mushrooms
+mushroom with mushroom_lsb = exact
+mushroom with mushroom_haar1 = 23.812364039
+mushroom with mushroom_haar2 = 9.24736051728
+
+
+
+PSNR values for inverse
+mushroom with lsb_inverse = 1.81092789884
+mushroom with haar1_inverse = 13.6082900346
+mushroom with haar2_inverse = 6.99340994466
+
+PSNR values for contrast
+mushroom with lsb_contrast = 2.27656566009
+mushroom with haar1_contrast = 7.99261560124
+mushroom with haar2_contrast = 7.28014828316
+
+PSNR values for brightness
+mushroom with lsb_brightness = 26.7775780684
+mushroom with haar1_brightness = 19.9709653125
+mushroom with haar2_brightness = 7.8366066405
+
+PSNR values for crop
+mushroom with lsb_crop = 6.88579500851
+mushroom with haar_crop = 6.960073344
+mushroom with haar2_crop = 6.90492266585
+
+PSNR values for resize
+mushroom with lsb_resize = 6.95062707138
+mushroom with haar_resize = 6.92682173525
+mushroom with haar2_resize = 6.87782669736
+
+PSNR values for pixelate
+
+mushroom with lsb_pixelate = 5.50891422043
+mushroom with haar_pixelate = 4.50058640301
+mushroom with haar2_pixelate = 2.86506103266
+

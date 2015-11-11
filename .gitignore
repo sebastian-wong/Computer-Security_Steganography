@@ -2,6 +2,13 @@
 __pycache__/
 *.py[cod]
 
+# images
+*.png
+*.jpg
+*.PNG
+
+
+
 # C extensions
 *.so
 
@@ -55,3 +62,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+*.png
+
+*.png
