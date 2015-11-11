@@ -44,9 +44,9 @@ def img_to_bin(img):
     return res
 
 def bin_to_msg(bits):
-    res = ""
+    res = []
     for i in range(0, len(bits), 8):
-        res += (chr(int(bits[i:i+8], 2)))
+        res.append(int(bits[i:i+8], 2))
     return res
 
 def replace_bits(msg, rep):
@@ -150,7 +150,10 @@ def decode(img, (h,w)):
         msg += extract_bits(LL[i]) + extract_bits(LH[i])
         msg += extract_bits(HL[i]) + extract_bits(HH[i])
     img = bin_to_msg(msg)
-    return np.reshape(img, (h,w))
+    #print img.shape,h,w
+    res = np.reshape(img, (h,w))
+    print res
+    return res
 
 def encode2(img, msg):
     ll, lh, hl, hh = wt(img)
