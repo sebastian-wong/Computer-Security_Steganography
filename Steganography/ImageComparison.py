@@ -31,8 +31,8 @@ def computeColourPSNR(image1,image2):
     
 infinity = float("inf")        
 # change these files to test image
-img1 = cv2.imread(os.getcwd() + "/Input/milkyway.jpg")
-img2 = cv2.imread(os.getcwd() + "/Input/milkyway_wavelet_image.png")
+img1 = cv2.imread(os.getcwd() + "/comparison/mushroom.png")
+img2 = cv2.imread(os.getcwd() + "/comparison/lsb_inverse.png")
 # Testing coloured PSNR
 colouredPSNR = computeColourPSNR(img1,img2)
 # infinite means images are exactly the same

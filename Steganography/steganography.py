@@ -207,6 +207,6 @@ def main():
             #decoded = cv2.merge((decode2(b3, s), decode2(g3, s), decode2(r3, s)))
             #cv2.imwrite(sys.argv[3], decoded)
 
-if __name__ == "__main__":
-    #main()
-    test()
+# if __name__ == "__main__":
+#   #   main()
+#   # test()
